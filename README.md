@@ -20,26 +20,28 @@ Linux-AD-Connector is a simple and efficient script designed to seamlessly integ
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/Linux-AD-Connector.git
+   git clone https://github.com/DentechNL/Linux-AD-Connector.git
    cd Linux-AD-Connector
    ```
 
 2. Make the script executable:
 
    ```bash
-   chmod +x ad-joiner.sh
+   chmod +x linuxadconnector.sh
    ```
 
 3. Run the script:
 
    ```bash
-   ./ad-joiner.sh
+   ./linuxadconnector.sh
    ```
 
    The script will prompt for:
-   - Domain (e.g., \`dentech.nl\`)
-   - Realm (e.g., \`DENTECH.NL\`)
-   - Administrator Username (e.g., \`administrator\`)
+   - Domain (e.g., `dentech.nl`)
+   - Realm (e.g., `DENTECH.NL`)
+   - Administrator Username (e.g., `administrator`)
+   - Servername (e.g., `dc1.example.com`)
+   - Organisational Unit (e.g., `OU=Servers,DC=example,DC=com`)
 
 4. The script will:
    - Install necessary packages (e.g., \`realmd\`, \`sssd\`).

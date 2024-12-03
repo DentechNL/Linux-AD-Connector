@@ -1,4 +1,8 @@
 # Linux-AD-Connector
+[![GitHub stars](https://img.shields.io/github/stars/DentechNL/Linux-AD-Connector)]((https://github.com/DentechNL/Linux-AD-Connector)/stargazers) 
+[![Commits per Month](https://img.shields.io/github/commit-activity/m/DentechNL/Linux-AD-Connector)](https://github.com/DentechNL/Linux-AD-Connector/commits/main) 
+![Tech Stack](https://img.shields.io/badge/stack-Bash%20%7C%20Shell-brightgreen) 
+[![Platform](https://img.shields.io/badge/platform-Linux-blue.svg)](https://shields.io/) 
 
 Linux-AD-Connector is a simple and efficient script designed to seamlessly integrate Linux systems into an Active Directory (AD) environment. By automating the process of domain joining, configuring SSSD for authentication, and setting up Kerberos, this tool allows Linux administrators to quickly connect their machines to an AD domain.
 

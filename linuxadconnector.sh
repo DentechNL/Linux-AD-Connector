@@ -56,7 +56,6 @@ check_command() {
 }
 
 # Welcome message
-clear
 log_message "==============================="
 log_message "Starting Linux Active Directory Connector"
 log_message "==============================="
@@ -179,7 +178,9 @@ if [[ "$configure_permissions" == "y" ]]; then
             1)
                 # Grant sudo and login access to all domain users
                 log_message "Granting sudo and login access to all domain users..."
-                echo "%domain\\ users ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
+                AD_GROUP="Domain Users@$DOMAIN"
+                ESCAPED_GROUP=$(echo "$AD_GROUP" | sed 's/ /\\ /g')
+                echo "%$ESCAPED_GROUP ALL=(ALL:ALL) ALL" | sudo tee -a $SUDOERS_FILE > /dev/null
                 sudo chmod 440 $SUDOERS_FILE
                 sudo realm permit --all
                 log_message "Sudo and login access granted to all domain users."
@@ -197,7 +198,8 @@ if [[ "$configure_permissions" == "y" ]]; then
                 # Grant sudo access to a specific AD group
                 get_user_input "Enter the AD group to grant sudo and login access" AD_GROUP
                 log_message "Granting sudo and login access to group: $AD_GROUP..."
-                echo "\"%$AD_GROUP\" ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
+                ESCAPED_GROUP=$(echo "$AD_GROUP" | sed 's/ /\\ /g')
+                echo "%$ESCAPED_GROUP ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
                 sudo chmod 440 $SUDOERS_FILE
                 sudo realm permit --all
                 log_message "Sudo and login access granted to group: $AD_GROUP."

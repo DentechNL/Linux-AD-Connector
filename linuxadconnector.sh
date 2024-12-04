@@ -160,29 +160,47 @@ check_command "pam-auth-update --enable mkhomedir" "Failed to enable PAM mkhomed
 log_message "PAM authentication and mkhomedir enabled."
 
 # Step 11: Configure sudo access for an optional Active Directory group
-get_user_input "Enter the name of the AD group to grant full sudo access (leave empty to skip)" AD_GROUP
+while true; do
+    get_user_input "Do you want to enable group specified for sudo access? (A for all domain users, G for specific group (e.g., Domain Admins), N for no sudo access)" SUDO_OPTION
+    
+    if [[ "$SUDO_OPTION" == "A" || "$SUDO_OPTION" == "G" || "$SUDO_OPTION" == "N" ]]; then
+        break  # Exit the loop if the input is valid
+    else
+        log_message "Invalid option. Please enter A, G, or N."
+    fi
+done
 
-if [[ -n "$AD_GROUP" ]]; then
-    log_message "Configuring sudo access for group: $AD_GROUP..."
-    
-    # Define the sudoers file path
-    SUDOERS_FILE="/etc/sudoers.d/activedirectory"
-    
-    # # Write the group to the sudoers file
-    echo "\"%$AD_GROUP\" ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
-    
-    # Ensure correct permissions
+SUDOERS_FILE="/etc/sudoers.d/activedirectory"
+
+if [[ "$SUDO_OPTION" == "A" ]]; then
+    log_message "Granting full sudo access to all domain users..."
+    echo "%domain\\ users ALL=(ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
     sudo chmod 440 $SUDOERS_FILE
-    
-    # Verify the configuration
     if sudo visudo -cf $SUDOERS_FILE; then
-        log_message "Sudo access configured successfully for group: $AD_GROUP."
+        log_message "Sudo access granted to all domain users."
     else
         exit_with_error "Failed to validate the sudoers file. Check syntax."
     fi
-else
-    log_message "No group specified for sudo access. Skipping this step."
+
+elif [[ "$SUDO_OPTION" == "G" ]]; then
+    get_user_input "Enter the name of the AD group to grant sudo access (e.g., Domain Admins@example.com)" AD_GROUP
+    if [[ -n "$AD_GROUP" ]]; then
+        log_message "Configuring sudo access for group: $AD_GROUP..."
+        echo "\"%$AD_GROUP\" ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
+        sudo chmod 440 $SUDOERS_FILE
+        if sudo visudo -cf $SUDOERS_FILE; then
+            log_message "Sudo access configured successfully for group: $AD_GROUP."
+        else
+            exit_with_error "Failed to validate the sudoers file. Check syntax."
+        fi
+    else
+        exit_with_error "No AD group specified. Skipping sudo configuration for group."
+    fi
+
+elif [[ "$SUDO_OPTION" == "N" ]]; then
+    log_message "No sudo permissions granted to any group or user."
 fi
+log_message "To manually add/change/remove the allowed groups, modify /etc/sudoers.d/activedirectory"
 
 # Completion message
 log_message "==============================="

@@ -169,7 +169,7 @@ if [[ "$configure_permissions" == "y" ]]; then
         echo "Choose the sudo and login access configuration:"
         echo " 1) Grant sudo and login access to all domain users"
         echo " 2) Grant login access (no sudo) to all domain users"
-        echo " 3) Grant sudo access and login access to a specific AD group"
+        echo " 3) Grant sudo access to a specific AD group"
         echo " 4) No access for anyone in AD"
         read -p "Enter your choice [1-4]: " choice
 

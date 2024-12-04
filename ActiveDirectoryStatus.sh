@@ -9,8 +9,10 @@ LOG_FILE="/var/log/AD_status_check.log"
 log_message() {
     local message=$1
     local date_time=$(date '+%Y-%m-%d %H:%M:%S')
-    echo "$date_time - $message" | tee -a $LOG_FILE
-}
+    # Log message to file with timestamp
+    echo "$date_time - $message" >> $LOG_FILE
+    # Print message to terminal without timestamp
+    echo "$message"}
 
 log_message "==============================="
 log_message "Checking Active Directory Domain Status"

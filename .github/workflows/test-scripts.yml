@@ -17,10 +17,10 @@ jobs:
 
       - name: Test AD install script
         run: |
-          chmod +x linuxadconnector.sh
-          bash -n ./linuxadconnector.sh
+          chmod +x JoinActiveDirectory.sh
+          bash -n ./JoinActiveDirectory.sh
 
       - name: Test AD deinstall script
         run: |
-          chmod +x deinstall.sh
-          bash -n ./deinstall.sh
+          chmod +x LeaveActiveDirectory.sh
+          bash -n ./LeaveActiveDirectory.sh

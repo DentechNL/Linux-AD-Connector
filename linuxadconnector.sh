@@ -99,18 +99,36 @@ check_command "realm -v discover $domain" "Failed to discover the realm: $domain
 
 # Step 5: Configure Kerberos
 get_user_input "Enter the realm (e.g., EXAMPLE.COM)" realm
+
+# Log the realm input to verify it's correctly set
 log_message "Configuring Kerberos with realm: $realm..."
+
+# Check if the realm variable is not empty
 if [[ -z "$realm" ]]; then
     exit_with_error "Realm is empty. Please provide a valid realm."
 fi
-cat > /etc/krb5.conf <<EOF
+
+# Backup existing /etc/krb5.conf if it exists
+if [[ -f /etc/krb5.conf ]]; then
+    log_message "Backing up existing /etc/krb5.conf to /etc/krb5.conf.bak"
+    cp /etc/krb5.conf /etc/krb5.conf.bak >/dev/null 2>&1 || exit_with_error "Failed to back up existing /etc/krb5.conf"
+fi
+
+# Write the Kerberos configuration to /etc/krb5.conf
+log_message "Writing Kerberos configuration..."
+cat <<EOF | sudo tee /etc/krb5.conf >/dev/null 2>&1
 [libdefaults]
     default_realm = $realm
     rdns = false
 EOF
 
-check_command "cat > /etc/krb5.conf" "Failed to configure /etc/krb5.conf for realm: $realm."
+# Verify that the file was written successfully
+if [[ $? -ne 0 ]]; then
+    exit_with_error "Failed to write Kerberos configuration to /etc/krb5.conf"
+fi
+
 log_message "Kerberos configuration for realm $realm completed successfully."
+
 
 # Step 6: Join the domain
 get_user_input "Enter the admin username for joining the domain" ADMIN_USER

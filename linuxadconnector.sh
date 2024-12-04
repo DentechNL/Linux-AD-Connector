@@ -168,8 +168,8 @@ if [[ -n "$AD_GROUP" ]]; then
     # Define the sudoers file path
     SUDOERS_FILE="/etc/sudoers.d/activedirectory"
     
-    # Write the group to the sudoers file
-    echo "%$AD_GROUP ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
+    # # Write the group to the sudoers file
+    echo "\"%$AD_GROUP\" ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
     
     # Ensure correct permissions
     sudo chmod 440 $SUDOERS_FILE

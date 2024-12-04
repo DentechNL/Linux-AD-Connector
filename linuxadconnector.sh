@@ -1,113 +1,143 @@
+#
+# Author:       Daniël van Ginneken <daniel@dentech.nl>
+# Date:         Wednesday Dec 04 11:12:43 2024
+#
+# Note:         To debug the script change the shebang to: /usr/bin/env bash -vx
+#
+# Prerequisite: This release needs a shell that could handle functions.
+#
+# Purpose:      Install / Config script for connecting a Linux server to Active Directory domain
+#
+
 #!/bin/bash
+# Define log file for tracking progress
+LOG_FILE="/var/log/AD_join_script.log"
 
-# Script to join Linux machine to Active Directory Domain
-
-# Log function for better traceability
-log() {
-    echo "$(date +'%Y-%m-%d %H:%M:%S') - $1" | tee -a /var/log/domain_join.log
+# Function to log messages with timestamp
+log_message() {
+    local message=$1
+    local date_time=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "$date_time - $message" | tee -a $LOG_FILE
 }
 
-# Ask for Domain, Realm, and Admin Username Input securely
-read -p "Enter your domain (e.g., example.com): " DOMAIN
-read -p "Enter your realm (e.g., EXAMPLE.COM): " REALM
-read -p "Enter the administrator username (e.g., administrator): " ADMIN_USER
-read -p "Enter the servername (e.g., dc1.example.com): " SERVER
-read -p "Enter the Organisational Unit (e.g., OU=Linux Computers,DC=example,DC=com): " ORGUNIT
-
-# Display entered information for confirmation
-log "Domain: $DOMAIN"
-log "Realm: $REALM"
-log "Administrator User: $ADMIN_USER"
-log "AD Server: $SERVER"
-
-# Check for root privileges
-if [ "$(id -u)" -ne 0 ]; then
-    log "Script must be run as root. Exiting."
+# Function to exit with error message and code
+exit_with_error() {
+    local message=$1
+    log_message "ERROR: $message"
     exit 1
-fi
+}
 
-# Update System Packages
-log "Updating system packages..."
-if command -v apt-get >/dev/null 2>&1; then
-    apt-get update -y || { log "Failed to update packages. Exiting."; exit 1; }
-elif command -v yum >/dev/null 2>&1; then
-    yum update -y || { log "Failed to update packages. Exiting."; exit 1; }
-else
-    log "Neither apt-get nor yum found. Exiting."
-    exit 1
-fi
+# Function to ask for user input with validation
+get_user_input() {
+    local prompt=$1
+    local var_name=$2
+    while true; do
+        read -p "$prompt: " $var_name
+        if [[ -z "${!var_name}" ]]; then
+            echo "Input cannot be empty. Please provide a valid value."
+        else
+            break
+        fi
+    done
+}
 
-# Install Required Packages
-log "Installing required packages..."
-if command -v apt-get >/dev/null 2>&1; then
-    apt-get install -y realmd sssd adcli samba-common-bin krb5-user || { log "Failed to install packages. Exiting."; exit 1; }
-elif command -v yum >/dev/null 2>&1; then
-    yum install -y realmd sssd adcli samba-common krb5-workstation || { log "Failed to install packages. Exiting."; exit 1; }
-fi
+# Check if a command was successful
+check_command() {
+    local command=$1
+    local error_message=$2
+    if ! eval $command; then
+        exit_with_error "$error_message"
+    fi
+}
 
-# Discover the AD Domain
-log "Discovering the AD domain..."
-realm discover $REALM || { log "Failed to discover domain. Exiting."; exit 1; }
+# Welcome message
+clear
+log_message "==============================="
+log_message "Starting Linux Active Directory Connector"
+log_message "==============================="
+echo "Starting Linux Active Directory Connector... Please follow the instructions."
+log_message "Script initiated."
 
-# Join the Linux machine to the Active Directory Domain
-log "Joining the machine to the domain..."
-sudo realm join --user=$ADMIN_USER $REALM --computer-ou="$ORGUNIT" $SERVER || { log "Failed to join domain. Exiting."; exit 1; }
+# Step 1: Check if DNS configuration is required
+echo "Do you need to configure the DNS manually? (y/n)"
+read configure_dns
 
-# Configure SSSD (if not automatically configured)
-log "Configuring SSSD..."
-cat > /etc/sssd/sssd.conf <<EOF
-[sssd]
-domains = $DOMAIN
-config_file_version = 2
-services = nss, pam
-
-[domain/$DOMAIN]
-id_provider = ad
-access_provider = ad
-ad_domain = $DOMAIN
-krb5_realm = $REALM
-realmd_tags = manages-system joined-with-samba
-cache_credentials = true
-ldap_id_mapping = true
+if [[ "$configure_dns" == "y" ]]; then
+    get_user_input "Enter AD DNS server IP" ADIP
+    log_message "Configuring DNS with IP: $ADIP..."
+    cat > /etc/resolv.conf <<EOF
+nameserver $ADIP
 EOF
+    check_command "cat > /etc/resolv.conf <<EOF" "Failed to configure DNS in /etc/resolv.conf."
+    
+    # Only run ping if DNS IP is provided
+    log_message "Pinging DNS server to test connectivity..."
+    if ! ping -c 5 $ADIP; then
+        exit_with_error "DNS server $ADIP is not reachable. Please check the IP and network connectivity."
+    fi
+else
+    log_message "DNS configuration skipped."
+fi
 
-# Set permissions on the sssd.conf file
-chmod 600 /etc/sssd/sssd.conf || { log "Failed to set permissions on sssd.conf. Exiting."; exit 1; }
+# Step 2: Update system
+log_message "Updating system packages..."
+check_command "apt update && apt upgrade -y" "System update failed."
 
-# Restart SSSD service
-log "Restarting SSSD service..."
-systemctl restart sssd || { log "Failed to restart SSSD service. Exiting."; exit 1; }
+# Step 3: Install required packages
+log_message "Installing required packages..."
+check_command "apt install -y realmd sssd-tools sssd-ad adcli" "Package installation failed."
 
-# Enable SSSD on boot
-log "Enabling SSSD to start on boot..."
-systemctl enable sssd || { log "Failed to enable SSSD on boot. Exiting."; exit 1; }
+# Step 4: Discover the realm
+get_user_input "Enter the domain (e.g., example.com)" domain
+log_message "Discovering the realm: $domain..."
+check_command "realm -v discover $domain" "Failed to discover the realm: $domain."
 
-# Configure Kerberos
-log "Configuring Kerberos..."
+# Step 5: Configure Kerberos
+get_user_input "Enter the realm (e.g., EXAMPLE.COM)" realm
+log_message "Configuring Kerberos with realm: $realm..."
 cat > /etc/krb5.conf <<EOF
 [libdefaults]
-default_realm = $REALM
-dns_lookup_realm = false
-dns_lookup_kdc = true
-
-[realms]
-$REALM = {
-  kdc = $SERVER
-  admin_server = $SERVER
-}
-
-[domain_realm]
-.$DOMAIN = $REALM
-$DOMAIN = $REALM
+    default_realm = $realm
+    rdns = false
 EOF
+check_command "cat > /etc/krb5.conf" "Failed to configure /etc/krb5.conf for realm: $realm."
 
-# Prompt user for reboot option
-log "System configuration is complete."
-read -p "Would you like to reboot the system now? (yes/no): " REBOOT_CHOICE
+# Step 6: Join the domain
+get_user_input "Enter the admin username for joining the domain" ADMIN_USER
+get_user_input "Enter the Organizational Unit (OU) for the computer object" ORGUNIT
+log_message "Joining domain with admin user $ADMIN_USER..."
 
-if [[ "$REBOOT_CHOICE" == "yes" || "$REBOOT_CHOICE" == "y" ]]; then
-    log "Rebooting the system now..."
-    reboot || { log "Failed to reboot the system. Please reboot manually."; exit 1; }
-else
-    log "Please reboot the system later to apply changes."
+if ! sudo realm join --user=$ADMIN_USER $domain --computer-ou="$ORGUNIT"; then
+    exit_with_error "Failed to join the domain $domain. Please check credentials and OU settings."
 fi
+log_message "Successfully joined the domain."
+
+# Step 7: Verify the join
+log_message "Verifying the domain join..."
+check_command "realm -v discover $domain" "Failed to verify the domain join."
+log_message "Domain verified successfully."
+
+# Step 8: Restart the SSSD service
+log_message "Restarting SSSD service..."
+check_command "systemctl restart sssd" "Failed to restart SSSD service."
+log_message "SSSD service restarted."
+
+# Step 9: Display AD info
+log_message "Fetching domain information..."
+check_command "adcli info $domain" "Failed to fetch domain information."
+log_message "Domain information fetched."
+
+# Step 10: Enable PAM authentication
+log_message "Enabling PAM authentication and mkhomedir..."
+check_command "pam-auth-update --enable mkhomedir" "Failed to enable PAM mkhomedir."
+log_message "PAM authentication and mkhomedir enabled."
+
+# Completion message
+clear
+log_message "==============================="
+log_message "Linux Active Directory Connector Script Completed Successfully"
+log_message "==============================="
+echo "The Linux Active Directory Connector process has been completed successfully."
+
+# Exit with success code
+exit 0

@@ -100,12 +100,17 @@ check_command "realm -v discover $domain" "Failed to discover the realm: $domain
 # Step 5: Configure Kerberos
 get_user_input "Enter the realm (e.g., EXAMPLE.COM)" realm
 log_message "Configuring Kerberos with realm: $realm..."
+if [[ -z "$realm" ]]; then
+    exit_with_error "Realm is empty. Please provide a valid realm."
+fi
 cat > /etc/krb5.conf <<EOF
 [libdefaults]
     default_realm = $realm
     rdns = false
 EOF
+
 check_command "cat > /etc/krb5.conf" "Failed to configure /etc/krb5.conf for realm: $realm."
+log_message "Kerberos configuration for realm $realm completed successfully."
 
 # Step 6: Join the domain
 get_user_input "Enter the admin username for joining the domain" ADMIN_USER

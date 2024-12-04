@@ -159,6 +159,31 @@ log_message "Enabling PAM authentication and mkhomedir..."
 check_command "pam-auth-update --enable mkhomedir" "Failed to enable PAM mkhomedir."
 log_message "PAM authentication and mkhomedir enabled."
 
+# Step 11: Configure sudo access for an optional Active Directory group
+get_user_input "Enter the name of the AD group to grant full sudo access (leave empty to skip)" AD_GROUP
+
+if [[ -n "$AD_GROUP" ]]; then
+    log_message "Configuring sudo access for group: $AD_GROUP..."
+    
+    # Define the sudoers file path
+    SUDOERS_FILE="/etc/sudoers.d/activedirectory"
+    
+    # Write the group to the sudoers file
+    echo "%$AD_GROUP ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
+    
+    # Ensure correct permissions
+    sudo chmod 440 $SUDOERS_FILE
+    
+    # Verify the configuration
+    if sudo visudo -cf $SUDOERS_FILE; then
+        log_message "Sudo access configured successfully for group: $AD_GROUP."
+    else
+        exit_with_error "Failed to validate the sudoers file. Check syntax."
+    fi
+else
+    log_message "No group specified for sudo access. Skipping this step."
+fi
+
 # Completion message
 clear
 log_message "==============================="

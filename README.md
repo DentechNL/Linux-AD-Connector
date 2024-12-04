@@ -40,18 +40,21 @@ Linux-AD-Connector is a simple and efficient script designed to seamlessly integ
    sudo bash ./linuxadconnector.sh
    ```
 
-   The script will prompt for:
-   - Domain (e.g., `dentech.nl`)
-   - Realm (e.g., `DENTECH.NL`)
-   - Administrator Username (e.g., `administrator`)
-   - Servername (e.g., `dc1.example.com`)
-   - Organisational Unit (e.g., `OU=Servers,DC=example,DC=com`)
+#### The script will prompt for:
+- Domain (e.g., `dentech.nl`)
+- Realm (e.g., `DENTECH.NL`)
+- Administrator Username (e.g., `administrator`)
+- Servername (e.g., `dc1.example.com`)
+- Organizational Unit (e.g., `OU=Servers,DC=example,DC=com`)
+- Optional: AD Group for full sudo access (e.g., `Dentech - Administrators`)
 
-4. The script will:
-   - Install necessary packages (e.g., \`realmd\`, \`sssd\`).
-   - Join the machine to the AD domain.
-   - Configure Kerberos and SSSD for domain authentication.
-   - Reboot the system to apply changes.
+#### The script will:
+- Install necessary packages (e.g., `realmd`, `sssd`, `adcli`).
+- Join the machine to the AD domain.
+- Configure Kerberos and SSSD for domain authentication.
+- Optionally configure sudo access for a specified AD group.
+- Restart necessary services (no reboot required unless specified).
+
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

@@ -4,7 +4,7 @@
 ![Tech Stack](https://img.shields.io/badge/stack-Bash-brightgreen) 
 [![Platform](https://img.shields.io/badge/platform-Linux-blue.svg)](https://shields.io/) 
 
-Linux-AD-Connector is a simple and efficient script designed to seamlessly integrate Linux systems into an Active Directory (AD) environment. By automating the process of domain joining, configuring SSSD for authentication, and setting up Kerberos, this tool allows Linux administrators to quickly connect their machines to an AD domain.
+Linux Active Directory Manager is a simple and efficient script designed to seamlessly integrate Linux systems into an Active Directory (AD) environment. By automating the process of domain joining, configuring SSSD for authentication, and setting up Kerberos, this tool allows Linux administrators to quickly connect their machines to an AD domain.
 
 ## Features
 - Automates joining a Linux machine to an Active Directory domain.
@@ -37,7 +37,7 @@ Linux-AD-Connector is a simple and efficient script designed to seamlessly integ
 3. Run the script:
 
    ```bash
-   sudo bash JoinActiveDirectory.sh
+   sudo bash ./JoinActiveDirectory.sh
    ```
 
 #### The script will prompt for:
@@ -74,7 +74,7 @@ Linux-AD-Connector is a simple and efficient script designed to seamlessly integ
 3. Run the script:
 
    ```bash
-   sudo bash LeaveActiveDirectory.sh
+   sudo bash ./LeaveActiveDirectory.sh
    ```
 
 #### The deinstall script will:

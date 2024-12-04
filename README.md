@@ -37,7 +37,7 @@ Linux-AD-Connector is a simple and efficient script designed to seamlessly integ
 3. Run the script:
 
    ```bash
-   ./linuxadconnector.sh
+   sudo bash ./linuxadconnector.sh
    ```
 
    The script will prompt for:

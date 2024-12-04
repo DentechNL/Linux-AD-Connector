@@ -72,8 +72,7 @@ log_message "Installing required packages..."
 check_command "apt install -y realmd sssd-tools sssd-ad adcli" "Package installation failed."
 
 # Step 3: Check if DNS configuration is required
-echo "Do you need to configure the DNS staticly? (y/n)"
-read configure_dns
+get_user_input "Do you need to configure the DNS staticly? (y/n)" configure_dns
 
 if [[ "$configure_dns" == "y" ]]; then
     get_user_input "Enter AD DNS server IP" ADIP

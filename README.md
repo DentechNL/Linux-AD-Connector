@@ -1,7 +1,7 @@
-# Linux-AD-Connector
-[![GitHub stars](https://img.shields.io/github/stars/DentechNL/Linux-AD-Connector)]((https://github.com/DentechNL/Linux-AD-Connector)/stargazers) 
-[![Commits per Month](https://img.shields.io/github/commit-activity/m/DentechNL/Linux-AD-Connector)](https://github.com/DentechNL/Linux-AD-Connector/commits/main) 
-![Tech Stack](https://img.shields.io/badge/stack-Bash%20%7C%20Shell-brightgreen) 
+# Linux Active Directory Manager
+[![GitHub stars](https://img.shields.io/github/stars/DentechNL/Linux-AD-Manager)]((https://github.com/DentechNL/Linux-AD-Manager)/stargazers) 
+[![Commits per Month](https://img.shields.io/github/commit-activity/m/DentechNL/Linux-AD-Manager)](https://github.com/DentechNL/Linux-AD-Manager/commits/main) 
+![Tech Stack](https://img.shields.io/badge/stack-Bash-brightgreen) 
 [![Platform](https://img.shields.io/badge/platform-Linux-blue.svg)](https://shields.io/) 
 
 Linux-AD-Connector is a simple and efficient script designed to seamlessly integrate Linux systems into an Active Directory (AD) environment. By automating the process of domain joining, configuring SSSD for authentication, and setting up Kerberos, this tool allows Linux administrators to quickly connect their machines to an AD domain.
@@ -24,20 +24,20 @@ Linux-AD-Connector is a simple and efficient script designed to seamlessly integ
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/DentechNL/Linux-AD-Connector.git
-   cd Linux-AD-Connector
+   git clone https://github.com/DentechNL/Linux-AD-Manager.git
+   cd Linux-AD-Manager
    ```
 
 2. Make the script executable:
 
    ```bash
-   chmod +x linuxadconnector.sh
+   chmod +x JoinActiveDirectory.sh
    ```
 
 3. Run the script:
 
    ```bash
-   sudo bash ./linuxadconnector.sh
+   sudo bash JoinActiveDirectory.sh
    ```
 
 #### The script will prompt for:
@@ -56,5 +56,32 @@ Linux-AD-Connector is a simple and efficient script designed to seamlessly integ
 - Restart necessary services (no reboot required unless specified).
 
 
+## Uninstallation
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/DentechNL/Linux-AD-Manager.git
+   cd Linux-AD-Manager
+   ```
+
+2. Make the script executable:
+
+   ```bash
+   chmod +x LeaveActiveDirectory.sh
+   ```
+
+3. Run the script:
+
+   ```bash
+   sudo bash LeaveActiveDirectory.sh
+   ```
+
+#### The deinstall script will:
+- Remove the sudo permissions saved in `/etc/sudoers.d/activedirectory`.
+- Leave the domain intact for future access.
+- Uninstall the packages associated with the Active Directory integration (e.g., `realmd`, `sssd`, `adcli`).
+- Clean up the system configuration and logs.
+
 ## License
-This project is licensed under the Apache 2 License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache2 License - see the [LICENSE](LICENSE) file for details.

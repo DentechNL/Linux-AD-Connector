@@ -54,4 +54,4 @@ Linux-AD-Connector is a simple and efficient script designed to seamlessly integ
    - Reboot the system to apply changes.
 
 ## License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE.md) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

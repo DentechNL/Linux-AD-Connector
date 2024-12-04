@@ -9,7 +9,7 @@
 # Purpose:      Install / Config script for connecting a Linux server to Active Directory domain
 #
 
-#!/bin/bash
+#!/usr/bin/env bash
 # Define log file for tracking progress
 LOG_FILE="/var/log/AD_join_script.log"
 
@@ -17,7 +17,7 @@ LOG_FILE="/var/log/AD_join_script.log"
 log_message() {
     local message=$1
     local date_time=$(date '+%Y-%m-%d %H:%M:%S')
-    echo "$date_time - $message" | tee -a $LOG_FILE
+    echo "$date_time - $message" >> $LOG_FILE
 }
 
 # Function to exit with error message and code

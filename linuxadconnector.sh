@@ -63,17 +63,25 @@ log_message "==============================="
 echo "Starting Linux Active Directory Connector... Please follow the instructions."
 log_message "Script initiated."
 
-# Step 1: Check if DNS configuration is required
-echo "Do you need to configure the DNS manually? (y/n)"
+# Step 1: Update system
+log_message "Updating system packages..."
+check_command "apt update && apt upgrade -y" "System update failed."
+
+# Step 2: Install required packages
+log_message "Installing required packages..."
+check_command "apt install -y realmd sssd-tools sssd-ad adcli" "Package installation failed."
+
+# Step 3: Check if DNS configuration is required
+echo "Do you need to configure the DNS staticly? (y/n)"
 read configure_dns
 
 if [[ "$configure_dns" == "y" ]]; then
     get_user_input "Enter AD DNS server IP" ADIP
     log_message "Configuring DNS with IP: $ADIP..."
-    cat > /etc/resolv.conf <<EOF
-nameserver $ADIP
-EOF
-    check_command "cat > /etc/resolv.conf <<EOF" "Failed to configure DNS in /etc/resolv.conf."
+    
+    # Overwrite /etc/resolv.conf with the new DNS entry
+    echo "nameserver $ADIP" > /etc/resolv.conf
+    check_command "echo 'nameserver $ADIP' > /etc/resolv.conf" "Failed to configure DNS in /etc/resolv.conf."
     
     # Only run ping if DNS IP is provided
     log_message "Pinging DNS server to test connectivity..."
@@ -83,14 +91,6 @@ EOF
 else
     log_message "DNS configuration skipped."
 fi
-
-# Step 2: Update system
-log_message "Updating system packages..."
-check_command "apt update && apt upgrade -y" "System update failed."
-
-# Step 3: Install required packages
-log_message "Installing required packages..."
-check_command "apt install -y realmd sssd-tools sssd-ad adcli" "Package installation failed."
 
 # Step 4: Discover the realm
 get_user_input "Enter the domain (e.g., example.com)" domain

@@ -185,7 +185,6 @@ else
 fi
 
 # Completion message
-clear
 log_message "==============================="
 log_message "Linux Active Directory Connector Script Completed Successfully"
 log_message "==============================="

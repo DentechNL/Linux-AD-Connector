@@ -173,11 +173,12 @@ if [[ "$configure_permissions" == "y" ]]; then
         echo " 4) No access for anyone in AD"
         read -p "Enter your choice [1-4]: " choice
 
+        SUDOERS_FILE="/etc/sudoers.d/activedirectory"
+
         case $choice in
             1)
                 # Grant sudo and login access to all domain users
                 log_message "Granting sudo and login access to all domain users..."
-                SUDOERS_FILE="/etc/sudoers.d/domain_all_users"
                 echo "%domain\\ users ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
                 sudo chmod 440 $SUDOERS_FILE
                 sudo realm permit --all
@@ -196,8 +197,7 @@ if [[ "$configure_permissions" == "y" ]]; then
                 # Grant sudo access to a specific AD group
                 get_user_input "Enter the AD group to grant sudo and login access" AD_GROUP
                 log_message "Granting sudo and login access to group: $AD_GROUP..."
-                SUDOERS_FILE="/etc/sudoers.d/$AD_GROUP"
-                echo "%$AD_GROUP ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
+                echo "\"%$AD_GROUP\" ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
                 sudo chmod 440 $SUDOERS_FILE
                 sudo realm permit --all
                 log_message "Sudo and login access granted to group: $AD_GROUP."

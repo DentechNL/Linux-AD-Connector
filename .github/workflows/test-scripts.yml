@@ -1,0 +1,26 @@
+name: Test Linux AD Connector Scripts
+
+on: [push, pull_request]
+
+jobs:
+  test-scripts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bash realmd sssd adcli
+
+      - name: Test AD install script
+        run: |
+          chmod +x linuxadconnector.sh
+          bash -n ./linuxadconnector.sh
+
+      - name: Test AD deinstall script
+        run: |
+          chmod +x deinstall.sh
+          bash -n ./deinstall.sh

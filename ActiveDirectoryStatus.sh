@@ -12,7 +12,8 @@ log_message() {
     # Log message to file with timestamp
     echo "$date_time - $message" >> $LOG_FILE
     # Print message to terminal without timestamp
-    echo "$message"}
+    echo "$message" 
+    }
 
 log_message "==============================="
 log_message "Checking Active Directory Domain Status"

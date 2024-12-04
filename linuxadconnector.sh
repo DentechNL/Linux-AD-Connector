@@ -17,7 +17,12 @@ LOG_FILE="/var/log/AD_join_script.log"
 log_message() {
     local message=$1
     local date_time=$(date '+%Y-%m-%d %H:%M:%S')
+    
+    # Log message to file with timestamp
     echo "$date_time - $message" >> $LOG_FILE
+    
+    # Print message to terminal without timestamp
+    echo "$message"
 }
 
 # Function to exit with error message and code

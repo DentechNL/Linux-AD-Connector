@@ -159,46 +159,64 @@ log_message "Enabling PAM authentication and mkhomedir..."
 check_command "pam-auth-update --enable mkhomedir" "Failed to enable PAM mkhomedir."
 log_message "PAM authentication and mkhomedir enabled."
 
-# Step 11: Configure sudo access for an optional Active Directory group
-while true; do
-    get_user_input "Do you want to enable group specified for sudo access? (A for all domain users, G for specific group (e.g., Domain Admins), N for no sudo access)" SUDO_OPTION
-    
-    if [[ "$SUDO_OPTION" == "A" || "$SUDO_OPTION" == "G" || "$SUDO_OPTION" == "N" ]]; then
-        break  # Exit the loop if the input is valid
-    else
-        log_message "Invalid option. Please enter A, G, or N."
-    fi
-done
+# Step 11: Configure sudo access and login permissions for Active Directory users
 
-SUDOERS_FILE="/etc/sudoers.d/activedirectory"
+get_user_input "Do you want to configure sudo access and login permissions? (y/n)" configure_permissions
 
-if [[ "$SUDO_OPTION" == "A" ]]; then
-    log_message "Granting full sudo access to all domain users..."
-    echo "%domain\\ users ALL=(ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
-    sudo chmod 440 $SUDOERS_FILE
-    if sudo visudo -cf $SUDOERS_FILE; then
-        log_message "Sudo access granted to all domain users."
-    else
-        exit_with_error "Failed to validate the sudoers file. Check syntax."
-    fi
+if [[ "$configure_permissions" == "y" ]]; then
+    # Prompt for sudo and login access options
+    while true; do
+        echo "Choose the sudo and login access configuration:"
+        echo " 1) Grant sudo and login access to all domain users"
+        echo " 2) Grant login access (no sudo) to all domain users"
+        echo " 3) Grant sudo access and login access to a specific AD group"
+        echo " 4) No access for anyone in AD"
+        read -p "Enter your choice [1-4]: " choice
 
-elif [[ "$SUDO_OPTION" == "G" ]]; then
-    get_user_input "Enter the name of the AD group to grant sudo access (e.g., Domain Admins@example.com)" AD_GROUP
-    if [[ -n "$AD_GROUP" ]]; then
-        log_message "Configuring sudo access for group: $AD_GROUP..."
-        echo "\"%$AD_GROUP\" ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
-        sudo chmod 440 $SUDOERS_FILE
-        if sudo visudo -cf $SUDOERS_FILE; then
-            log_message "Sudo access configured successfully for group: $AD_GROUP."
-        else
-            exit_with_error "Failed to validate the sudoers file. Check syntax."
-        fi
-    else
-        exit_with_error "No AD group specified. Skipping sudo configuration for group."
-    fi
+        case $choice in
+            1)
+                # Grant sudo and login access to all domain users
+                log_message "Granting sudo and login access to all domain users..."
+                SUDOERS_FILE="/etc/sudoers.d/domain_all_users"
+                echo "%domain\\ users ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
+                sudo chmod 440 $SUDOERS_FILE
+                sudo realm permit --all
+                log_message "Sudo and login access granted to all domain users."
+                break
+                ;;
 
-elif [[ "$SUDO_OPTION" == "N" ]]; then
-    log_message "No sudo permissions granted to any group or user."
+            2)
+                # Grant login access (no sudo) to all domain users
+                log_message "Granting login access (no sudo) to all domain users..."
+                sudo realm permit --all
+                log_message "Login access granted to all domain users."
+                break
+                ;;
+            3)
+                # Grant sudo access to a specific AD group
+                get_user_input "Enter the AD group to grant sudo and login access" AD_GROUP
+                log_message "Granting sudo and login access to group: $AD_GROUP..."
+                SUDOERS_FILE="/etc/sudoers.d/$AD_GROUP"
+                echo "%$AD_GROUP ALL=(ALL:ALL) ALL" | sudo tee $SUDOERS_FILE > /dev/null
+                sudo chmod 440 $SUDOERS_FILE
+                sudo realm permit --all
+                log_message "Sudo and login access granted to group: $AD_GROUP."
+                break
+                ;;
+
+            4)
+                # No access for anyone in AD
+                log_message "No sudo or login access granted to anyone."
+                sudo realm deny --all
+                break
+                ;;
+            *)
+                echo "Invalid input. Please choose a number between 1 and 4."
+                ;;
+        esac
+    done
+else
+    log_message "No sudo or login permissions configured. Skipping this step."
 fi
 log_message "To manually add/change/remove the allowed groups, modify /etc/sudoers.d/activedirectory"
 

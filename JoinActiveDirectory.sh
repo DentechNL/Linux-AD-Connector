@@ -228,5 +228,24 @@ log_message "Linux Active Directory Connector Script Completed Successfully"
 log_message "==============================="
 echo "The Linux Active Directory Connector process has been completed successfully."
 
+# Prompt for reboot
+while true; do
+    read -p "Would you like to reboot the system now? (yes/no): " REBOOT_CHOICE
+    case "$REBOOT_CHOICE" in
+        yes|y|YES|Y)
+            log_message "Rebooting the system now..."
+            reboot || { log_message "Failed to reboot the system. Please reboot manually."; exit 1; }
+            break
+            ;;
+        no|n|NO|N)
+            log_message "Please reboot the system later to apply changes."
+            break
+            ;;
+        *)
+            echo "Invalid input. Please enter 'yes' or 'no'."
+            ;;
+    esac
+done
+
 # Exit with success code
 exit 0
